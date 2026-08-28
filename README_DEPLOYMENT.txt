@@ -1,4 +1,4 @@
-2027 GUBERNATORIAL RESULTS DASHBOARD - V1
+2027 MNA RESULTS DASHBOARD - V1
 ===========================================
 
 PURPOSE
