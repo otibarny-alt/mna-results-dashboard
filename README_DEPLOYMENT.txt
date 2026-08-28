@@ -217,3 +217,6 @@ Start Command: gunicorn app:app
 Required election-specific env values:
 RESULTS_ASSET_UID=<NATIONAL_ASSEMBLY_KOBO_ASSET_UID>
 NA_CANDIDATES_FILENAME=na_candidates.csv
+
+
+V2: Reported polling-station streams now include a direct View Form 35A link in Reporting Details. Pending streams show no form link.

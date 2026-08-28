@@ -1026,6 +1026,15 @@ def api_reporting_details():
         item["agent_phone"] = contact.get("agent_phone", "")
         item["agent_email"] = contact.get("agent_email", "")
         item["registered_voters"] = contact.get("registered_voters", "")
+
+        # Make the submitted Form 35A directly viewable from Reporting Details.
+        att = attachment_for_field(sub[0], "national_assembly_votes/form_35a") if sub else None
+        item["form35a"] = bool(att and att.get("download_url"))
+        item["form35a_url"] = (
+            "/api/form35a?url=" + quote(att["download_url"], safe="")
+            if att and att.get("download_url") else None
+        )
+
         # Polling station name is redundant because stream_label already contains it.
         item.pop("poll_station_label", None)
         item.pop("poll_station", None)

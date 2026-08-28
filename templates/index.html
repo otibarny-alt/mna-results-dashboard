@@ -110,7 +110,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
       </select>
     </div>
     <div class="scroll">
-      <table><thead><tr><th>County</th><th>Constituency</th><th>Polling Station Stream</th><th>Registered Voters</th><th>Agent ID</th><th>Agent Phone</th><th>Status</th><th>Submitted</th></tr></thead><tbody id="reportingTable"></tbody></table>
+      <table><thead><tr><th>County</th><th>Constituency</th><th>Polling Station Stream</th><th>Registered Voters</th><th>Agent ID</th><th>Agent Phone</th><th>Status</th><th>Submitted</th><th>Form 35A</th></tr></thead><tbody id="reportingTable"></tbody></table>
     </div>
     <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-top:12px">
       <button id="prevPage" onclick="changeReportingPage(-1)">Previous</button>
@@ -310,16 +310,16 @@ async function loadReporting(){
     document.getElementById('nextPage').disabled=data.page>=data.total_pages;
 
     if(data.rows.length===0){
-      body.innerHTML='<tr><td colspan="8">No polling streams found for this selection.</td></tr>';
+      body.innerHTML='<tr><td colspan="9">No polling streams found for this selection.</td></tr>';
       return;
     }
 
     body.innerHTML=data.rows.map(x=>
-      `<tr><td>${x.county_label||'—'}</td><td>${x.constituency_label||'—'}</td><td>${x.stream_label||'—'}</td><td>${x.registered_voters?Number(x.registered_voters).toLocaleString():'—'}</td><td>${x.agent_id||'—'}</td><td>${x.agent_phone||'—'}</td><td class="status-${x.status}">${x.status}</td><td>${x.submission_time||''}</td></tr>`
+      `<tr><td>${x.county_label||'—'}</td><td>${x.constituency_label||'—'}</td><td>${x.stream_label||'—'}</td><td>${x.registered_voters?Number(x.registered_voters).toLocaleString():'—'}</td><td>${x.agent_id||'—'}</td><td>${x.agent_phone||'—'}</td><td class="status-${x.status}">${x.status}</td><td>${x.submission_time||''}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank" rel="noopener">View Form 35A</a>`:'—'}</td></tr>`
     ).join('');
   }catch(err){
     console.error("Reporting details error:",err);
-    body.innerHTML='<tr><td colspan="8">Unable to load reporting details. Please refresh and try again.</td></tr>';
+    body.innerHTML='<tr><td colspan="9">Unable to load reporting details. Please refresh and try again.</td></tr>';
   }
 }
 
@@ -333,7 +333,7 @@ function changeReportingPage(delta){
 async function loadRecent(){
   const rows=await fetch('/api/recent-results'+qs()+'&limit=50',{cache:'no-store'}).then(r=>r.json());
   document.getElementById('recentTable').innerHTML=rows.map(x=>
-    `<tr><td>${x.submission_time}</td><td>${x.county_label}</td><td>${x.constituency_label}</td><td>${x.poll_station_label}</td><td>${x.stream_label}</td><td>${x.national_id}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank">View Form 35A</a>`:'—'}</td></tr>`).join('');
+    `<tr><td>${x.submission_time}</td><td>${x.county_label}</td><td>${x.constituency_label}</td><td>${x.poll_station_label}</td><td>${x.stream_label}</td><td>${x.national_id}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank" rel="noopener">View Form 35A</a>`:'—'}</td></tr>`).join('');
 }
 async function refreshData(){
   const r=await fetch('/api/refresh',{method:'POST'}).then(r=>r.json());
