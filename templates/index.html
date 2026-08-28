@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2027 National Assembly Results Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;color:#222}
+.wrap{max-width:1400px;margin:auto;padding:20px}
+.header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+h1{margin:0;font-size:26px}.muted{color:#666;font-size:13px}
+.controls{background:#fff;padding:14px;border-radius:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 10px #0001}
+select,button{padding:10px 12px;border:1px solid #bbb;border-radius:8px;background:#fff}
+button{cursor:pointer}.primary{background:#222;color:#fff;border-color:#222}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 10px #0001}
+.big{font-size:28px;font-weight:700}.label{font-size:13px;color:#666;margin-top:4px}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5e5e5;text-align:left;font-size:14px}th{background:#fafafa}
+.chartbox{height:360px}.section-title{display:flex;justify-content:space-between;align-items:center}
+.status-REPORTED{font-weight:700;color:#147a35}.status-PENDING{font-weight:700;color:#a11}
+.scroll{max-height:480px;overflow:auto}
+.tabs{display:flex;gap:8px;margin:18px 0 8px}.tabs button.active{background:#222;color:#fff}
+.hidden{display:none}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:560px){.cards{grid-template-columns:1fr}.header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>2027 National Assembly Results Dashboard</h1>
+      <div class="muted">Live constituency tallies from Kobo National Assembly results transmissions, with drill-down to ward, polling station and stream</div>
+    </div>
+    <div><button onclick="refreshData()">Refresh Now</button> <a href="/logout">Logout</a></div>
+  </div>
+
+  <div class="controls">
+    <strong>View:</strong>
+    <select id="county"><option value="">National</option></select>
+    <select id="constituency" disabled><option value="">All Constituencies</option></select>
+    <select id="ward" disabled><option value="">All Wards</option></select>
+    <select id="pollStation" disabled><option value="">All Polling Stations</option></select>
+    <select id="stream" disabled><option value="">All Streams</option></select>
+    <button class="primary" onclick="loadDashboard()">Apply</button>
+    <span id="lastUpdated" class="muted"></span>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="big" id="reportedStreams">0</div><div class="label">Streams Reported</div></div>
+    <div class="card"><div class="big" id="expectedStreams">0</div><div class="label">Expected Streams</div></div>
+    <div class="card"><div class="big" id="pendingStreams">0</div><div class="label">Streams Pending</div></div>
+    <div class="card"><div class="big" id="reportingPercent">0%</div><div class="label">Reporting Progress</div></div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="big" id="completeCentres">0</div><div class="label">Polling Centres Complete</div></div>
+    <div class="card"><div class="big" id="partialCentres">0</div><div class="label">Polling Centres Partial</div></div>
+    <div class="card"><div class="big" id="notStartedCentres">0</div><div class="label">Polling Centres Not Started</div></div>
+    <div class="card"><div class="big" id="registeredVoters">0</div><div class="label">Total Registered Voters</div></div>
+    <div class="card"><div class="big" id="totalVotesCast">0</div><div class="label">Total Votes Cast</div></div>
+    <div class="card"><div class="big" id="validVotes">0</div><div class="label">Valid Votes Cast</div></div>
+    <div class="card"><div class="big" id="rejectedVotes">0</div><div class="label">Rejected Votes</div></div>
+    <div class="card"><div class="big" id="uncastVotes">0</div><div class="label">Uncast Votes</div></div>
+    <div class="card"><div class="big" id="turnoutPercent">0%</div><div class="label">Voter Turnout</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="section-title"><h2>National Assembly Candidate Tallies</h2><span id="candidateScopeNote" class="muted"></span></div>
+      <div class="scroll">
+        <table><thead><tr><th>Rank</th><th>Candidate</th><th>Votes</th><th>Share</th></tr></thead><tbody id="candidateTable"></tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Reporting Progress</h2>
+      <div class="chartbox"><canvas id="progressChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>National Assembly Candidate Votes</h2>
+    <div class="chartbox"><canvas id="candidateChart"></canvas></div>
+  </div>
+
+  <div class="tabs">
+    <button id="tabReporting" class="active" onclick="showTab('reporting')">Reporting Details</button>
+    <button id="tabRecent" onclick="showTab('recent')">Recent Results / Form 35A</button>
+  </div>
+
+  <div id="reportingPanel" class="card">
+    <div class="section-title">
+      <h2>Reporting Details</h2>
+      <span id="reportingCount" class="muted"></span>
+    </div>
+    <div class="controls" style="box-shadow:none;padding:8px 0;margin-bottom:8px">
+      <select id="statusFilter" onchange="reportingPage=1;loadReporting()">
+        <option value="">All Statuses</option>
+        <option value="PENDING">Pending Only</option>
+        <option value="REPORTED">Reported Only</option>
+      </select>
+      <input id="reportingSearch" placeholder="Search station or stream" style="padding:10px 12px;border:1px solid #bbb;border-radius:8px;min-width:240px">
+      <button onclick="reportingPage=1;loadReporting()">Search</button>
+      <select id="pageSize" onchange="reportingPage=1;loadReporting()">
+        <option value="100">100 rows</option>
+        <option value="200" selected>200 rows</option>
+        <option value="500">500 rows</option>
+      </select>
+    </div>
+    <div class="scroll">
+      <table><thead><tr><th>County</th><th>Constituency</th><th>Polling Station Stream</th><th>Registered Voters</th><th>Agent ID</th><th>Agent Phone</th><th>Status</th><th>Submitted</th></tr></thead><tbody id="reportingTable"></tbody></table>
+    </div>
+    <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-top:12px">
+      <button id="prevPage" onclick="changeReportingPage(-1)">Previous</button>
+      <span id="pageInfo" class="muted"></span>
+      <button id="nextPage" onclick="changeReportingPage(1)">Next</button>
+    </div>
+  </div>
+
+  <div id="recentPanel" class="card hidden">
+    <h2>Recent Results</h2>
+    <div class="scroll">
+      <table><thead><tr><th>Submitted</th><th>County</th><th>Constituency</th><th>Polling Station</th><th>Stream</th><th>Agent ID</th><th>Form 35A</th></tr></thead><tbody id="recentTable"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+let candidateChart, progressChart;
+const fmt=n=>Number(n||0).toLocaleString();
+
+async function init(){
+  const counties=await fetch('/api/counties').then(r=>r.json());
+  const c=document.getElementById('county');
+  counties.forEach(x=>c.add(new Option(x.label,x.value)));
+  c.addEventListener('change',loadConstituencies);
+  document.getElementById('constituency').addEventListener('change',loadWards);
+  document.getElementById('ward').addEventListener('change',loadPollingStations);
+  document.getElementById('pollStation').addEventListener('change',loadStreams);
+  await loadDashboard();
+}
+async function loadConstituencies(){
+  const county=document.getElementById('county').value;
+  const el=document.getElementById('constituency');
+  const ward=document.getElementById('ward');
+  const station=document.getElementById('pollStation');
+  const stream=document.getElementById('stream');
+  el.innerHTML='<option value="">All Constituencies</option>';
+  ward.innerHTML='<option value="">All Wards</option>';
+  station.innerHTML='<option value="">All Polling Stations</option>';
+  stream.innerHTML='<option value="">All Streams</option>';
+  el.disabled=!county;
+  ward.disabled=true;
+  station.disabled=true;
+  stream.disabled=true;
+  if(county){
+    const rows=await fetch('/api/constituencies?county='+encodeURIComponent(county)).then(r=>r.json());
+    rows.forEach(x=>el.add(new Option(x.label,x.value)));
+  }
+}
+async function loadWards(){
+  const county=document.getElementById('county').value;
+  const constituency=document.getElementById('constituency').value;
+  const ward=document.getElementById('ward');
+  const station=document.getElementById('pollStation');
+  const stream=document.getElementById('stream');
+  ward.innerHTML='<option value="">All Wards</option>';
+  station.innerHTML='<option value="">All Polling Stations</option>';
+  stream.innerHTML='<option value="">All Streams</option>';
+  ward.disabled=!constituency;
+  station.disabled=true;
+  stream.disabled=true;
+  if(county && constituency){
+    const rows=await fetch('/api/wards?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)).then(r=>r.json());
+    rows.forEach(x=>ward.add(new Option(x.label,x.value)));
+  }
+}
+async function loadPollingStations(){
+  const county=document.getElementById('county').value;
+  const constituency=document.getElementById('constituency').value;
+  const ward=document.getElementById('ward').value;
+  const station=document.getElementById('pollStation');
+  const stream=document.getElementById('stream');
+  station.innerHTML='<option value="">All Polling Stations</option>';
+  stream.innerHTML='<option value="">All Streams</option>';
+  station.disabled=!ward;
+  stream.disabled=true;
+  if(county && constituency && ward){
+    const rows=await fetch('/api/polling-stations?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)+'&ward='+encodeURIComponent(ward)).then(r=>r.json());
+    rows.forEach(x=>station.add(new Option(x.label,x.value)));
+  }
+}
+async function loadStreams(){
+  const county=document.getElementById('county').value;
+  const constituency=document.getElementById('constituency').value;
+  const ward=document.getElementById('ward').value;
+  const station=document.getElementById('pollStation').value;
+  const stream=document.getElementById('stream');
+  stream.innerHTML='<option value="">All Streams</option>';
+  stream.disabled=!station;
+  if(county && constituency && ward && station){
+    const rows=await fetch('/api/streams?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)+'&ward='+encodeURIComponent(ward)+'&poll_station='+encodeURIComponent(station)).then(r=>r.json());
+    rows.forEach(x=>stream.add(new Option(x.label,x.value)));
+  }
+}
+function qs(){
+  const c=document.getElementById('county').value;
+  const k=document.getElementById('constituency').value;
+  const w=document.getElementById('ward').value;
+  const p=document.getElementById('pollStation').value;
+  const s=document.getElementById('stream').value;
+  return '?county='+encodeURIComponent(c)+'&constituency='+encodeURIComponent(k)+'&ward='+encodeURIComponent(w)+'&poll_station='+encodeURIComponent(p)+'&stream='+encodeURIComponent(s);
+}
+async function loadDashboard(){
+  reportingPage=1;
+  const d=await fetch('/api/summary'+qs(),{cache:'no-store'}).then(r=>r.json());
+  if(d.error){alert(d.error);return}
+  document.getElementById('reportedStreams').textContent=fmt(d.reporting.reported_streams);
+  document.getElementById('expectedStreams').textContent=fmt(d.reporting.expected_streams);
+  document.getElementById('pendingStreams').textContent=fmt(d.reporting.pending_streams);
+  document.getElementById('reportingPercent').textContent=d.reporting.reporting_percent+'%';
+  document.getElementById('completeCentres').textContent=fmt(d.reporting.polling_centres_complete);
+  document.getElementById('partialCentres').textContent=fmt(d.reporting.polling_centres_partial);
+  document.getElementById('notStartedCentres').textContent=fmt(d.reporting.polling_centres_not_started);
+  document.getElementById('registeredVoters').textContent=fmt(d.totals.registered_voters);
+  document.getElementById('totalVotesCast').textContent=fmt(d.totals.total_votes_cast);
+  document.getElementById('validVotes').textContent=fmt(d.totals.valid_votes);
+  document.getElementById('rejectedVotes').textContent=fmt(d.totals.rejected_ballots);
+  document.getElementById('uncastVotes').textContent=fmt(d.totals.uncast_votes);
+  document.getElementById('turnoutPercent').textContent=(d.totals.turnout_percent||0).toLocaleString()+'%';
+  document.getElementById('lastUpdated').textContent=d.last_updated?'Latest transmission: '+d.last_updated:'No results received yet';
+
+  const candidateBody=document.getElementById('candidateTable');
+  const candidateNote=document.getElementById('candidateScopeNote');
+  if(d.candidate_scope==='select_constituency'){
+    candidateNote.textContent='Select a constituency to view its National Assembly candidates';
+    candidateBody.innerHTML='<tr><td colspan="4">National Assembly candidates differ by constituency. Select a constituency above to view the correct candidate list and tallies.</td></tr>';
+  }else{
+    candidateNote.textContent=(d.candidate_config.no_of_candidates||0)+' candidates for this constituency';
+    candidateBody.innerHTML=d.candidates.map((x,i)=>
+      `<tr><td>${i+1}</td><td>${x.candidate}</td><td>${fmt(x.votes)}</td><td>${x.share}%</td></tr>`).join('');
+  }
+
+  if(candidateChart) candidateChart.destroy();
+  candidateChart=new Chart(document.getElementById('candidateChart'),{
+    type:'bar',
+    data:{
+      labels:d.candidate_series.map(x=>x.candidate),
+      datasets:[{label:'Votes',data:d.candidate_series.map(x=>x.votes)}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        title:{
+          display:d.candidate_scope==='select_constituency',
+          text:'Select a constituency to display National Assembly candidate votes'
+        }
+      }
+    }
+  });
+
+  if(progressChart) progressChart.destroy();
+  progressChart=new Chart(document.getElementById('progressChart'),{
+    type:'doughnut',
+    data:{labels:['Reported','Pending'],datasets:[{data:[d.reporting.reported_streams,d.reporting.pending_streams]}]},
+    options:{responsive:true,maintainAspectRatio:false}
+  });
+
+  loadReporting();
+  loadRecent();
+}
+let reportingPage=1;
+let reportingTotalPages=1;
+
+async function loadReporting(){
+  const body=document.getElementById('reportingTable');
+  body.innerHTML='<tr><td colspan="8">Loading reporting details…</td></tr>';
+
+  const status=document.getElementById('statusFilter')?.value||'';
+  const search=document.getElementById('reportingSearch')?.value||'';
+  const pageSize=document.getElementById('pageSize')?.value||'200';
+  const url='/api/reporting-details'+qs()+
+    '&page='+reportingPage+
+    '&page_size='+encodeURIComponent(pageSize)+
+    '&status='+encodeURIComponent(status)+
+    '&search='+encodeURIComponent(search);
+
+  try{
+    const response=await fetch(url,{cache:'no-store'});
+    const data=await response.json();
+
+    if(!response.ok || !data || !Array.isArray(data.rows)){
+      const message=(data&&data.error)?data.error:'Unable to load reporting details.';
+      body.innerHTML=`<tr><td colspan="8">${message}</td></tr>`;
+      return;
+    }
+
+    reportingPage=data.page;
+    reportingTotalPages=data.total_pages;
+
+    document.getElementById('reportingCount').textContent=
+      Number(data.total_rows||0).toLocaleString()+' matching streams';
+    document.getElementById('pageInfo').textContent=
+      'Page '+data.page+' of '+data.total_pages;
+    document.getElementById('prevPage').disabled=data.page<=1;
+    document.getElementById('nextPage').disabled=data.page>=data.total_pages;
+
+    if(data.rows.length===0){
+      body.innerHTML='<tr><td colspan="8">No polling streams found for this selection.</td></tr>';
+      return;
+    }
+
+    body.innerHTML=data.rows.map(x=>
+      `<tr><td>${x.county_label||'—'}</td><td>${x.constituency_label||'—'}</td><td>${x.stream_label||'—'}</td><td>${x.registered_voters?Number(x.registered_voters).toLocaleString():'—'}</td><td>${x.agent_id||'—'}</td><td>${x.agent_phone||'—'}</td><td class="status-${x.status}">${x.status}</td><td>${x.submission_time||''}</td></tr>`
+    ).join('');
+  }catch(err){
+    console.error("Reporting details error:",err);
+    body.innerHTML='<tr><td colspan="8">Unable to load reporting details. Please refresh and try again.</td></tr>';
+  }
+}
+
+function changeReportingPage(delta){
+  const target=reportingPage+delta;
+  if(target<1 || target>reportingTotalPages) return;
+  reportingPage=target;
+  loadReporting();
+}
+
+async function loadRecent(){
+  const rows=await fetch('/api/recent-results'+qs()+'&limit=50',{cache:'no-store'}).then(r=>r.json());
+  document.getElementById('recentTable').innerHTML=rows.map(x=>
+    `<tr><td>${x.submission_time}</td><td>${x.county_label}</td><td>${x.constituency_label}</td><td>${x.poll_station_label}</td><td>${x.stream_label}</td><td>${x.national_id}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank">View Form 35A</a>`:'—'}</td></tr>`).join('');
+}
+async function refreshData(){
+  const r=await fetch('/api/refresh',{method:'POST'}).then(r=>r.json());
+  if(!r.success){alert(r.error||'Refresh failed');return}
+  await loadDashboard();
+}
+function showTab(which){
+  document.getElementById('reportingPanel').classList.toggle('hidden',which!=='reporting');
+  document.getElementById('recentPanel').classList.toggle('hidden',which!=='recent');
+  document.getElementById('tabReporting').classList.toggle('active',which==='reporting');
+  document.getElementById('tabRecent').classList.toggle('active',which==='recent');
+}
+init();
+</script>
+</body>
+</html>
