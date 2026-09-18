@@ -2,7 +2,7 @@
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Results Dashboard Login</title>
 <style>body{font-family:Arial;background:#f4f6f8;padding:30px}.card{max-width:420px;margin:80px auto;background:#fff;padding:26px;border-radius:14px;box-shadow:0 4px 20px #0002}input{box-sizing:border-box;width:100%;padding:12px;margin:8px 0;border:1px solid #bbb;border-radius:8px}button{width:100%;padding:12px;background:#222;color:#fff;border:0;border-radius:8px}.msg{background:#fdecec;padding:10px;border-radius:7px}</style></head>
-<body><div class="card"><h2>MNA Results Dashboard</h2>
+<body><div class="card"><h2>Presidential Results Dashboard</h2>
 {% with messages=get_flashed_messages(with_categories=true) %}{% for c,m in messages %}<div class="msg">{{m}}</div>{% endfor %}{% endwith %}
 <form method="post"><input name="username" placeholder="Username" required><input name="password" type="password" placeholder="Password" required><button>Sign In</button></form>
 </div></body></html>

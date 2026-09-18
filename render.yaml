@@ -1,32 +1,7 @@
 services:
   - type: web
-    name: kenya-national-assembly-results-dashboard
+    name: mna-simulation-results-dashboard
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --workers 2 --threads 2 --timeout 60
     healthCheckPath: /health
-    envVars:
-      - key: KOBO_BASE_URL
-        value: https://kf.kobotoolbox.org
-      - key: RESULTS_ASSET_UID
-        sync: false
-      - key: AGENTS_ASSET_UID
-        value: a4VAzs8X6u5bq6eYWVP4o6
-      - key: AGENTS_REGISTRATION_FILENAME
-        value: agents_registration.csv
-      - key: AGENTS_LOGIN_FILENAME
-        value: agents_login.csv
-      - key: COUNTY_MAIN_FILENAME
-        value: county_main.csv
-      - key: NA_CANDIDATES_FILENAME
-        value: na_candidates.csv
-      - key: CACHE_SECONDS
-        value: 60
-      - key: KOBO_API_TOKEN
-        sync: false
-      - key: FLASK_SECRET_KEY
-        sync: false
-      - key: AUTH_USERNAME
-        sync: false
-      - key: AUTH_PASSWORD_HASH
-        sync: false

@@ -1,352 +1,120 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>2027 MNA Results Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2027 Member of National Assembly Simulation Results Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;color:#222}
-.wrap{max-width:1400px;margin:auto;padding:20px}
-.header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
-h1{margin:0;font-size:26px}.muted{color:#666;font-size:13px}
-.controls{background:#fff;padding:14px;border-radius:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 10px #0001}
-select,button{padding:10px 12px;border:1px solid #bbb;border-radius:8px;background:#fff}
-button{cursor:pointer}.primary{background:#222;color:#fff;border-color:#222}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
-.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 10px #0001}
-.big{font-size:28px;font-weight:700}.label{font-size:13px;color:#666;margin-top:4px}
-.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
-table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5e5e5;text-align:left;font-size:14px}th{background:#fafafa}
-.chartbox{height:360px}.section-title{display:flex;justify-content:space-between;align-items:center}
-.status-REPORTED{font-weight:700;color:#147a35}.status-PENDING{font-weight:700;color:#a11}
-.scroll{max-height:480px;overflow:auto}
-.tabs{display:flex;gap:8px;margin:18px 0 8px}.tabs button.active{background:#222;color:#fff}
-.hidden{display:none}
-@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
-@media(max-width:560px){.cards{grid-template-columns:1fr}.header{align-items:flex-start;flex-direction:column}}
+:root{--ink:#172033;--muted:#667085;--line:#e6e8ec;--panel:#fff;--bg:#f5f7fa;--accent:#ef7d00}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+.header{background:#fff;border-bottom:1px solid var(--line);padding:18px 24px;display:flex;justify-content:space-between;gap:20px;align-items:center}.title h1{margin:0;font-size:24px}.title p{margin:5px 0 0;color:var(--muted)}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#fff3e6;color:#9a4f00;font-weight:700;font-size:12px}.wrap{max-width:1500px;margin:0 auto;padding:18px}.controls,.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.controls select,.controls button{height:40px;border:1px solid #cfd4dc;border-radius:8px;background:#fff;padding:0 10px}.controls select{min-width:205px}.controls button{cursor:pointer;font-weight:700}.controls .primary{background:var(--accent);color:white;border-color:var(--accent)}
+.status{margin:0 0 14px;color:var(--muted);min-height:20px}.stats{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.stat .v{font-size:25px;font-weight:800}.stat .l{color:var(--muted);font-size:13px;margin-top:5px}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.card h2{margin:0;font-size:17px}.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.print-link,.email-link{border:1px solid #cfd4dc;border-radius:8px;background:#fff;padding:8px 12px;font-weight:700;cursor:pointer;color:var(--ink)}.email-link{margin-left:8px}.stream-card{margin-top:14px}.stream-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.stream-tools select,.stream-tools button{height:38px;border:1px solid #cfd4dc;border-radius:8px;background:#fff;padding:0 10px}.stream-tools button{cursor:pointer;font-weight:700}.stream-counts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px}.stream-count{background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}.status-good{font-weight:700;color:#067647}.status-pending{font-weight:700;color:#b54708}.pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}.pager button{height:34px;border:1px solid #cfd4dc;border-radius:8px;background:#fff;padding:0 12px;cursor:pointer}.pager button:disabled{opacity:.45;cursor:default}.scroll{overflow:auto;max-height:560px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}th{background:#fafbfc;position:sticky;top:0}td.num,th.num{text-align:right}.chartbox{height:360px}.footer{color:var(--muted);font-size:12px;text-align:center;margin:18px 0 4px}
+@media print{body{background:#fff}.header,.controls,.status,.stats,.card:not(#mnaResultsCard),.footer,.print-link,.email-link{display:none!important}.wrap{max-width:none;padding:0}.grid{display:block}.card#mnaResultsCard{display:block!important;border:0;box-shadow:none;padding:0}.card#mnaResultsCard .card-head{margin-bottom:14px}.card#mnaResultsCard h2{font-size:20px}.card#mnaResultsCard .scroll{max-height:none;overflow:visible}table{font-size:12pt}th{position:static;background:#f3f3f3}th,td{padding:8px}.print-meta{display:block!important;margin:0 0 14px;font-size:10pt;color:#444}}@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr}.controls select,.controls button{width:100%}}
 </style>
 </head>
 <body>
+<div class="header"><div class="title"><h1>2027 Member of National Assembly Simulation Results Dashboard</h1><p>Live TRAINING / SIMULATION results — non-binding</p></div><div>{% if auth_enabled %}<a href="/logout">Logout</a>{% endif %}</div></div>
 <div class="wrap">
-  <div class="header">
-    <div>
-      <h1>2027 MNA Results Dashboard</h1>
-      <div class="muted">Live constituency tallies from Kobo National Assembly results transmissions, with drill-down to ward, polling station and stream</div>
-    </div>
-    <div><button onclick="refreshData()">Refresh Now</button> <a href="/logout">Logout</a></div>
-  </div>
+ <div class="controls">
+  <span class="badge">TRAINING / SIMULATION ONLY</span>
+  <select id="county"><option value="">All Counties</option></select>
+  <select id="constituency" disabled><option value="">All Constituencies</option></select>
+  <select id="ward" disabled><option value="">All Wards</option></select>
+  <button class="primary" id="applyBtn">Apply Filters</button>
+  <button id="refreshBtn">Refresh Now</button>
+ </div>
+ <div class="status" id="status">Dashboard ready. Loading live member of national assembly simulation results…</div>
+ <div class="stats">
+  <div class="stat"><div class="v" id="registered">0</div><div class="l">Registered Voters</div></div>
+  <div class="stat"><div class="v" id="cast">0</div><div class="l">Deliberate Votes Cast</div></div>
+  <div class="stat"><div class="v" id="skipped">0</div><div class="l">Deliberate Votes Skipped</div></div>
+  <div class="stat"><div class="v" id="participants">0</div><div class="l">Participants</div></div>
+  <div class="stat"><div class="v" id="turnout">0%</div><div class="l">Turnout</div></div>
+  <div class="stat"><div class="v" id="opened">0</div><div class="l">Streams Opened</div></div>
+  <div class="stat"><div class="v" id="closed">0</div><div class="l">Streams Closed</div></div>
+  <div class="stat"><div class="v" id="expected">0</div><div class="l">Expected Streams</div></div>
+  <div class="stat"><div class="v" id="notCast">0</div><div class="l">Total Votes Not Cast</div></div>
+  <div class="stat"><div class="v" id="skipRate">0%</div><div class="l">Skipped / Registered</div></div>
+ </div>
+ <div class="grid">
+  <div class="card" id="mnaResultsCard"><div class="card-head"><h2>Member of National Assembly Candidate Results</h2><div><button type="button" class="print-link" id="printResultsBtn">Print Results</button><button type="button" class="email-link" id="emailResultsBtn">Email Results</button></div></div><div class="print-meta" id="printMeta" style="display:none"></div><div class="scroll"><table><thead><tr><th>Rank</th><th>Candidate</th><th>County</th><th>Constituency</th><th class="num">Votes</th><th class="num">Share</th></tr></thead><tbody id="candidateBody"><tr><td colspan="6">Waiting for live data…</td></tr></tbody></table></div></div>
+  <div class="card"><h2>Candidate Votes</h2><div class="chartbox"><canvas id="candidateChart"></canvas></div></div>
+ </div>
 
-  <div class="controls">
-    <strong>View:</strong>
-    <select id="county"><option value="">National</option></select>
-    <select id="constituency" disabled><option value="">All Constituencies</option></select>
-    <select id="ward" disabled><option value="">All Wards</option></select>
-    <select id="pollStation" disabled><option value="">All Polling Stations</option></select>
-    <select id="stream" disabled><option value="">All Streams</option></select>
-    <button class="primary" onclick="loadDashboard()">Apply</button>
-    <span id="lastUpdated" class="muted"></span>
+ <div class="card stream-card" id="streamStatusCard">
+  <div class="card-head"><h2>Polling Station Stream Submission Status</h2></div>
+  <div class="stream-tools">
+   <select id="submissionStatus">
+    <option value="all">All Streams</option>
+    <option value="submitted">Closed & Submitted</option>
+    <option value="not_submitted">Not Yet Submitted</option>
+   </select>
+   <button type="button" id="applyStreamStatusBtn">Apply Stream Filter</button>
   </div>
-
-  <div class="cards">
-    <div class="card"><div class="big" id="reportedStreams">0</div><div class="label">Streams Reported</div></div>
-    <div class="card"><div class="big" id="expectedStreams">0</div><div class="label">Expected Streams</div></div>
-    <div class="card"><div class="big" id="pendingStreams">0</div><div class="label">Streams Pending</div></div>
-    <div class="card"><div class="big" id="reportingPercent">0%</div><div class="label">Reporting Progress</div></div>
+  <div class="stream-counts">
+   <div class="stream-count">Expected: <strong id="streamExpected">0</strong></div>
+   <div class="stream-count">Closed & Submitted: <strong id="streamSubmitted">0</strong></div>
+   <div class="stream-count">Not Yet Submitted: <strong id="streamPending">0</strong></div>
+   <div class="stream-count">Showing: <strong id="streamFiltered">0</strong></div>
   </div>
-
-  <div class="cards">
-    <div class="card"><div class="big" id="completeCentres">0</div><div class="label">Polling Centres Complete</div></div>
-    <div class="card"><div class="big" id="partialCentres">0</div><div class="label">Polling Centres Partial</div></div>
-    <div class="card"><div class="big" id="notStartedCentres">0</div><div class="label">Polling Centres Not Started</div></div>
-    <div class="card"><div class="big" id="registeredVoters">0</div><div class="label">Total Registered Voters</div></div>
-    <div class="card"><div class="big" id="totalVotesCast">0</div><div class="label">Total Votes Cast</div></div>
-    <div class="card"><div class="big" id="validVotes">0</div><div class="label">Valid Votes Cast</div></div>
-    <div class="card"><div class="big" id="rejectedVotes">0</div><div class="label">Rejected Votes</div></div>
-    <div class="card"><div class="big" id="uncastVotes">0</div><div class="label">Uncast Votes</div></div>
-    <div class="card"><div class="big" id="turnoutPercent">0%</div><div class="label">Voter Turnout</div></div>
-  </div>
-
-  <div class="grid2">
-    <div class="card">
-      <div class="section-title"><h2>National Assembly Candidate Tallies</h2><span id="candidateScopeNote" class="muted"></span></div>
-      <div class="scroll">
-        <table><thead><tr><th>Rank</th><th>Candidate</th><th>Votes</th><th>Share</th></tr></thead><tbody id="candidateTable"></tbody></table>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Reporting Progress</h2>
-      <div class="chartbox"><canvas id="progressChart"></canvas></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h2>National Assembly Candidate Votes</h2>
-    <div class="chartbox"><canvas id="candidateChart"></canvas></div>
-  </div>
-
-  <div class="tabs">
-    <button id="tabReporting" class="active" onclick="showTab('reporting')">Reporting Details</button>
-    <button id="tabRecent" onclick="showTab('recent')">Recent Results / Form 35A</button>
-  </div>
-
-  <div id="reportingPanel" class="card">
-    <div class="section-title">
-      <h2>Reporting Details</h2>
-      <span id="reportingCount" class="muted"></span>
-    </div>
-    <div class="controls" style="box-shadow:none;padding:8px 0;margin-bottom:8px">
-      <select id="statusFilter" onchange="reportingPage=1;loadReporting()">
-        <option value="">All Statuses</option>
-        <option value="PENDING">Pending Only</option>
-        <option value="REPORTED">Reported Only</option>
-      </select>
-      <input id="reportingSearch" placeholder="Search station or stream" style="padding:10px 12px;border:1px solid #bbb;border-radius:8px;min-width:240px">
-      <button onclick="reportingPage=1;loadReporting()">Search</button>
-      <select id="pageSize" onchange="reportingPage=1;loadReporting()">
-        <option value="100">100 rows</option>
-        <option value="200" selected>200 rows</option>
-        <option value="500">500 rows</option>
-      </select>
-    </div>
-    <div class="scroll">
-      <table><thead><tr><th>County</th><th>Constituency</th><th>Polling Station Stream</th><th>Registered Voters</th><th>Agent ID</th><th>Agent Phone</th><th>Status</th><th>Submitted</th><th>Form 35A</th></tr></thead><tbody id="reportingTable"></tbody></table>
-    </div>
-    <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-top:12px">
-      <button id="prevPage" onclick="changeReportingPage(-1)">Previous</button>
-      <span id="pageInfo" class="muted"></span>
-      <button id="nextPage" onclick="changeReportingPage(1)">Next</button>
-    </div>
-  </div>
-
-  <div id="recentPanel" class="card hidden">
-    <h2>Recent Results</h2>
-    <div class="scroll">
-      <table><thead><tr><th>Submitted</th><th>County</th><th>Constituency</th><th>Polling Station</th><th>Stream</th><th>Agent ID</th><th>Form 35A</th></tr></thead><tbody id="recentTable"></tbody></table>
-    </div>
-  </div>
+  <div class="scroll"><table><thead><tr><th>County</th><th>Constituency</th><th>Ward</th><th>Polling Station</th><th>Stream</th><th>Status</th><th>Operational</th><th>Closed At</th></tr></thead><tbody id="streamStatusBody"><tr><td colspan="8">Loading stream status…</td></tr></tbody></table></div>
+  <div class="pager"><button type="button" id="streamPrevBtn">Previous</button><span id="streamPageLabel">Page 1 of 1</span><button type="button" id="streamNextBtn">Next</button></div>
+ </div>
+ <div class="footer">This dashboard is for training and simulation only and does not constitute an official election result.</div>
 </div>
-
 <script>
-let candidateChart, progressChart;
-const fmt=n=>Number(n||0).toLocaleString();
-
-async function init(){
-  const counties=await fetch('/api/counties').then(r=>r.json());
-  const c=document.getElementById('county');
-  counties.forEach(x=>c.add(new Option(x.label,x.value)));
-  c.addEventListener('change',loadConstituencies);
-  document.getElementById('constituency').addEventListener('change',loadWards);
-  document.getElementById('ward').addEventListener('change',loadPollingStations);
-  document.getElementById('pollStation').addEventListener('change',loadStreams);
-  await loadDashboard();
+const $=id=>document.getElementById(id), fmt=n=>Number(n||0).toLocaleString();
+let chart=null, busy=false, streamBusy=false, streamPage=1, streamTotalPages=1;
+function query(){return '?county='+encodeURIComponent($('county').value)+'&constituency='+encodeURIComponent($('constituency').value)+'&ward='+encodeURIComponent($('ward').value)}
+async function getJSON(url,opts){const r=await fetch(url,opts||{});const d=await r.json();if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+async function loadLocations(){
+ try{const rows=await getJSON('/api/counties');rows.forEach(x=>$('county').add(new Option(x.label,x.value)))}catch(e){$('status').textContent='Could not load county list: '+e.message}
 }
-async function loadConstituencies(){
-  const county=document.getElementById('county').value;
-  const el=document.getElementById('constituency');
-  const ward=document.getElementById('ward');
-  const station=document.getElementById('pollStation');
-  const stream=document.getElementById('stream');
-  el.innerHTML='<option value="">All Constituencies</option>';
-  ward.innerHTML='<option value="">All Wards</option>';
-  station.innerHTML='<option value="">All Polling Stations</option>';
-  stream.innerHTML='<option value="">All Streams</option>';
-  el.disabled=!county;
-  ward.disabled=true;
-  station.disabled=true;
-  stream.disabled=true;
-  if(county){
-    const rows=await fetch('/api/constituencies?county='+encodeURIComponent(county)).then(r=>r.json());
-    rows.forEach(x=>el.add(new Option(x.label,x.value)));
-  }
+async function loadConstituencies(){const c=$('county').value, el=$('constituency'), w=$('ward');el.innerHTML='<option value="">All Constituencies</option>';w.innerHTML='<option value="">All Wards</option>';el.disabled=!c;w.disabled=true;if(c){(await getJSON('/api/constituencies?county='+encodeURIComponent(c))).forEach(x=>el.add(new Option(x.label,x.value)))}}
+async function loadWards(){const c=$('county').value,k=$('constituency').value,w=$('ward');w.innerHTML='<option value="">All Wards</option>';w.disabled=!k;if(c&&k){(await getJSON('/api/wards?county='+encodeURIComponent(c)+'&constituency='+encodeURIComponent(k))).forEach(x=>w.add(new Option(x.label,x.value)))}}
+function render(d){
+ $('registered').textContent=fmt(d.totals.registered_voters);$('cast').textContent=fmt(d.totals.candidate_selections);$('skipped').textContent=fmt(d.totals.skipped);$('participants').textContent=fmt(d.totals.participants);$('turnout').textContent=d.totals.turnout_percent+'%';$('opened').textContent=fmt(d.reporting.opened_streams);$('closed').textContent=fmt(d.reporting.closed_streams);$('expected').textContent=fmt(d.reporting.expected_streams);$('notCast').textContent=fmt(d.totals.total_votes_not_cast);$('skipRate').textContent=d.totals.skip_percent_registered+'%';
+ $('candidateBody').innerHTML=d.candidates.length?d.candidates.map((x,i)=>`<tr><td>${i+1}</td><td>${x.candidate}</td><td>${x.county||'County Not Provided'}</td><td>${x.constituency||'Constituency Not Provided'}</td><td class="num">${fmt(x.votes)}</td><td class="num">${x.share}%</td></tr>`).join(''):'<tr><td colspan="6">No MNA candidate selections yet.</td></tr>';
+ if(chart)chart.destroy(); chart=new Chart($('candidateChart'),{type:'bar',data:{labels:d.candidates.map(x=>x.candidate+(x.constituency?' — '+x.constituency:'')),datasets:[{label:'Votes',data:d.candidates.map(x=>x.votes)}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},animation:{duration:250}}});
+ let s=d.last_updated?'Latest stream activity: '+d.last_updated:'No stream activity yet'; if(d.using_cached_snapshot)s+=' — displaying last good snapshot while upstream reconnects.'; $('status').textContent=s;
 }
-async function loadWards(){
-  const county=document.getElementById('county').value;
-  const constituency=document.getElementById('constituency').value;
-  const ward=document.getElementById('ward');
-  const station=document.getElementById('pollStation');
-  const stream=document.getElementById('stream');
-  ward.innerHTML='<option value="">All Wards</option>';
-  station.innerHTML='<option value="">All Polling Stations</option>';
-  stream.innerHTML='<option value="">All Streams</option>';
-  ward.disabled=!constituency;
-  station.disabled=true;
-  stream.disabled=true;
-  if(county && constituency){
-    const rows=await fetch('/api/wards?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)).then(r=>r.json());
-    rows.forEach(x=>ward.add(new Option(x.label,x.value)));
-  }
+
+function streamQuery(page){
+ return '?county='+encodeURIComponent($('county').value)+'&constituency='+encodeURIComponent($('constituency').value)+'&ward='+encodeURIComponent($('ward').value)+'&submission_status='+encodeURIComponent($('submissionStatus').value)+'&page='+encodeURIComponent(page||1)+'&page_size=100';
 }
-async function loadPollingStations(){
-  const county=document.getElementById('county').value;
-  const constituency=document.getElementById('constituency').value;
-  const ward=document.getElementById('ward').value;
-  const station=document.getElementById('pollStation');
-  const stream=document.getElementById('stream');
-  station.innerHTML='<option value="">All Polling Stations</option>';
-  stream.innerHTML='<option value="">All Streams</option>';
-  station.disabled=!ward;
-  stream.disabled=true;
-  if(county && constituency && ward){
-    const rows=await fetch('/api/polling-stations?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)+'&ward='+encodeURIComponent(ward)).then(r=>r.json());
-    rows.forEach(x=>station.add(new Option(x.label,x.value)));
-  }
+function renderStreamStatus(d){
+ $('streamExpected').textContent=fmt(d.counts.expected_streams);$('streamSubmitted').textContent=fmt(d.counts.submitted);$('streamPending').textContent=fmt(d.counts.not_submitted);$('streamFiltered').textContent=fmt(d.counts.filtered);
+ streamPage=d.page||1;streamTotalPages=d.total_pages||1;$('streamPageLabel').textContent='Page '+streamPage+' of '+streamTotalPages;$('streamPrevBtn').disabled=streamPage<=1;$('streamNextBtn').disabled=streamPage>=streamTotalPages;
+ $('streamStatusBody').innerHTML=d.rows.length?d.rows.map(x=>`<tr><td>${x.county||''}</td><td>${x.constituency||''}</td><td>${x.ward||''}</td><td>${x.poll_station||''}</td><td>${x.stream||''}</td><td class="${x.submission_status==='CLOSED & SUBMITTED'?'status-good':'status-pending'}">${x.submission_status}</td><td>${x.operational_status||''}</td><td>${x.closed_at||'—'}</td></tr>`).join(''):'<tr><td colspan="8">No streams match this filter.</td></tr>';
 }
-async function loadStreams(){
-  const county=document.getElementById('county').value;
-  const constituency=document.getElementById('constituency').value;
-  const ward=document.getElementById('ward').value;
-  const station=document.getElementById('pollStation').value;
-  const stream=document.getElementById('stream');
-  stream.innerHTML='<option value="">All Streams</option>';
-  stream.disabled=!station;
-  if(county && constituency && ward && station){
-    const rows=await fetch('/api/streams?county='+encodeURIComponent(county)+'&constituency='+encodeURIComponent(constituency)+'&ward='+encodeURIComponent(ward)+'&poll_station='+encodeURIComponent(station)).then(r=>r.json());
-    rows.forEach(x=>stream.add(new Option(x.label,x.value)));
-  }
-}
-function qs(){
-  const c=document.getElementById('county').value;
-  const k=document.getElementById('constituency').value;
-  const w=document.getElementById('ward').value;
-  const p=document.getElementById('pollStation').value;
-  const s=document.getElementById('stream').value;
-  return '?county='+encodeURIComponent(c)+'&constituency='+encodeURIComponent(k)+'&ward='+encodeURIComponent(w)+'&poll_station='+encodeURIComponent(p)+'&stream='+encodeURIComponent(s);
-}
-async function loadDashboard(){
-  reportingPage=1;
-  const d=await fetch('/api/summary'+qs(),{cache:'no-store'}).then(r=>r.json());
-  if(d.error){alert(d.error);return}
-  document.getElementById('reportedStreams').textContent=fmt(d.reporting.reported_streams);
-  document.getElementById('expectedStreams').textContent=fmt(d.reporting.expected_streams);
-  document.getElementById('pendingStreams').textContent=fmt(d.reporting.pending_streams);
-  document.getElementById('reportingPercent').textContent=d.reporting.reporting_percent+'%';
-  document.getElementById('completeCentres').textContent=fmt(d.reporting.polling_centres_complete);
-  document.getElementById('partialCentres').textContent=fmt(d.reporting.polling_centres_partial);
-  document.getElementById('notStartedCentres').textContent=fmt(d.reporting.polling_centres_not_started);
-  document.getElementById('registeredVoters').textContent=fmt(d.totals.registered_voters);
-  document.getElementById('totalVotesCast').textContent=fmt(d.totals.total_votes_cast);
-  document.getElementById('validVotes').textContent=fmt(d.totals.valid_votes);
-  document.getElementById('rejectedVotes').textContent=fmt(d.totals.rejected_ballots);
-  document.getElementById('uncastVotes').textContent=fmt(d.totals.uncast_votes);
-  document.getElementById('turnoutPercent').textContent=(d.totals.turnout_percent||0).toLocaleString()+'%';
-  document.getElementById('lastUpdated').textContent=d.last_updated?'Latest transmission: '+d.last_updated:'No results received yet';
+async function loadStreamStatus(page=1){if(streamBusy)return;streamBusy=true;try{renderStreamStatus(await getJSON('/api/stream-status'+streamQuery(page),{cache:'no-store'}))}catch(e){$('streamStatusBody').innerHTML='<tr><td colspan="8">'+e.message+'</td></tr>'}finally{streamBusy=false}}
 
-  const candidateBody=document.getElementById('candidateTable');
-  const candidateNote=document.getElementById('candidateScopeNote');
-  if(d.candidate_scope==='select_constituency'){
-    candidateNote.textContent='Select a constituency to view its National Assembly candidates';
-    candidateBody.innerHTML='<tr><td colspan="4">National Assembly candidates differ by constituency. Select a constituency above to view the correct candidate list and tallies.</td></tr>';
-  }else{
-    candidateNote.textContent=(d.candidate_config.no_of_candidates||0)+' candidates for this constituency';
-    candidateBody.innerHTML=d.candidates.map((x,i)=>
-      `<tr><td>${i+1}</td><td>${x.candidate}</td><td>${fmt(x.votes)}</td><td>${x.share}%</td></tr>`).join('');
-  }
-
-  if(candidateChart) candidateChart.destroy();
-  candidateChart=new Chart(document.getElementById('candidateChart'),{
-    type:'bar',
-    data:{
-      labels:d.candidate_series.map(x=>x.candidate),
-      datasets:[{label:'Votes',data:d.candidate_series.map(x=>x.votes)}]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        title:{
-          display:d.candidate_scope==='select_constituency',
-          text:'Select a constituency to display National Assembly candidate votes'
-        }
-      }
-    }
-  });
-
-  if(progressChart) progressChart.destroy();
-  progressChart=new Chart(document.getElementById('progressChart'),{
-    type:'doughnut',
-    data:{labels:['Reported','Pending'],datasets:[{data:[d.reporting.reported_streams,d.reporting.pending_streams]}]},
-    options:{responsive:true,maintainAspectRatio:false}
-  });
-
-  loadReporting();
-  loadRecent();
-}
-let reportingPage=1;
-let reportingTotalPages=1;
-
-async function loadReporting(){
-  const body=document.getElementById('reportingTable');
-  body.innerHTML='<tr><td colspan="8">Loading reporting details…</td></tr>';
-
-  const status=document.getElementById('statusFilter')?.value||'';
-  const search=document.getElementById('reportingSearch')?.value||'';
-  const pageSize=document.getElementById('pageSize')?.value||'200';
-  const url='/api/reporting-details'+qs()+
-    '&page='+reportingPage+
-    '&page_size='+encodeURIComponent(pageSize)+
-    '&status='+encodeURIComponent(status)+
-    '&search='+encodeURIComponent(search);
-
+async function loadSummary(){if(busy)return;busy=true;$('status').textContent='Loading live member of national assembly simulation results…';try{render(await getJSON('/api/summary'+query(),{cache:'no-store'}))}catch(e){$('status').textContent=e.message+' — automatic retry will continue.'}finally{busy=false}}
+$('printResultsBtn').addEventListener('click',()=>{
+  const c=$('county').selectedOptions[0]?.text||'All Counties', k=$('constituency').selectedOptions[0]?.text||'All Constituencies', w=$('ward').selectedOptions[0]?.text||'All Wards';
+  const table=$('mnaResultsCard').querySelector('table').outerHTML;
+  const pw=window.open('','_blank','width=900,height=700');
+  if(!pw){alert('Please allow pop-ups for this site to print results.');return;}
+  const meta=`TRAINING / SIMULATION ONLY — ${c} — ${k} — ${w} — Printed ${new Date().toLocaleString()}`;
+  pw.document.open();
+  pw.document.write(`<!doctype html><html><head><title>Member of National Assembly Candidate Results</title><style>body{font-family:Arial,sans-serif;color:#111;margin:28px}h1{font-size:22px;margin:0 0 6px}.meta{font-size:12px;color:#555;margin:0 0 18px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 8px;border-bottom:1px solid #ccc;text-align:left}th{background:#f3f3f3}th.num,td.num{text-align:right}@page{size:A4;margin:14mm}</style></head><body><h1>Member of National Assembly Candidate Results</h1><div class="meta">${meta}</div>${table}<script>window.onload=()=>{setTimeout(()=>window.print(),50)}<\/script></body></html>`);
+  pw.document.close();
+});
+$('emailResultsBtn').addEventListener('click',async()=>{
+  const recipient=prompt('Enter recipient email address:');
+  if(recipient===null)return;
+  const email=recipient.trim();
+  if(!email)return alert('Please enter a recipient email address.');
+  const btn=$('emailResultsBtn'), oldText=btn.textContent;
+  btn.disabled=true;btn.textContent='Sending PDF…';
   try{
-    const response=await fetch(url,{cache:'no-store'});
-    const data=await response.json();
-
-    if(!response.ok || !data || !Array.isArray(data.rows)){
-      const message=(data&&data.error)?data.error:'Unable to load reporting details.';
-      body.innerHTML=`<tr><td colspan="8">${message}</td></tr>`;
-      return;
-    }
-
-    reportingPage=data.page;
-    reportingTotalPages=data.total_pages;
-
-    document.getElementById('reportingCount').textContent=
-      Number(data.total_rows||0).toLocaleString()+' matching streams';
-    document.getElementById('pageInfo').textContent=
-      'Page '+data.page+' of '+data.total_pages;
-    document.getElementById('prevPage').disabled=data.page<=1;
-    document.getElementById('nextPage').disabled=data.page>=data.total_pages;
-
-    if(data.rows.length===0){
-      body.innerHTML='<tr><td colspan="9">No polling streams found for this selection.</td></tr>';
-      return;
-    }
-
-    body.innerHTML=data.rows.map(x=>
-      `<tr><td>${x.county_label||'—'}</td><td>${x.constituency_label||'—'}</td><td>${x.stream_label||'—'}</td><td>${x.registered_voters?Number(x.registered_voters).toLocaleString():'—'}</td><td>${x.agent_id||'—'}</td><td>${x.agent_phone||'—'}</td><td class="status-${x.status}">${x.status}</td><td>${x.submission_time||''}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank" rel="noopener">View Form 35A</a>`:'—'}</td></tr>`
-    ).join('');
-  }catch(err){
-    console.error("Reporting details error:",err);
-    body.innerHTML='<tr><td colspan="9">Unable to load reporting details. Please refresh and try again.</td></tr>';
-  }
-}
-
-function changeReportingPage(delta){
-  const target=reportingPage+delta;
-  if(target<1 || target>reportingTotalPages) return;
-  reportingPage=target;
-  loadReporting();
-}
-
-async function loadRecent(){
-  const rows=await fetch('/api/recent-results'+qs()+'&limit=50',{cache:'no-store'}).then(r=>r.json());
-  document.getElementById('recentTable').innerHTML=rows.map(x=>
-    `<tr><td>${x.submission_time}</td><td>${x.county_label}</td><td>${x.constituency_label}</td><td>${x.poll_station_label}</td><td>${x.stream_label}</td><td>${x.national_id}</td><td>${x.form35a?`<a href="${x.form35a_url}" target="_blank" rel="noopener">View Form 35A</a>`:'—'}</td></tr>`).join('');
-}
-async function refreshData(){
-  const r=await fetch('/api/refresh',{method:'POST'}).then(r=>r.json());
-  if(!r.success){alert(r.error||'Refresh failed');return}
-  await loadDashboard();
-}
-function showTab(which){
-  document.getElementById('reportingPanel').classList.toggle('hidden',which!=='reporting');
-  document.getElementById('recentPanel').classList.toggle('hidden',which!=='recent');
-  document.getElementById('tabReporting').classList.toggle('active',which==='reporting');
-  document.getElementById('tabRecent').classList.toggle('active',which==='recent');
-}
-init();
+    const d=await getJSON('/api/email-results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipient:email,county:$('county').value,constituency:$('constituency').value,ward:$('ward').value})});
+    alert(d.message||'Results PDF emailed successfully.');
+  }catch(e){alert('Email failed: '+e.message)}finally{btn.disabled=false;btn.textContent=oldText}
+});
+$('county').addEventListener('change',loadConstituencies);$('constituency').addEventListener('change',loadWards);$('applyBtn').addEventListener('click',async()=>{streamPage=1;await loadSummary();loadStreamStatus(1)});$('applyStreamStatusBtn').addEventListener('click',()=>{streamPage=1;loadStreamStatus(1)});$('submissionStatus').addEventListener('change',()=>{streamPage=1;loadStreamStatus(1)});$('streamPrevBtn').addEventListener('click',()=>{if(streamPage>1)loadStreamStatus(streamPage-1)});$('streamNextBtn').addEventListener('click',()=>{if(streamPage<streamTotalPages)loadStreamStatus(streamPage+1)});$('refreshBtn').addEventListener('click',async()=>{if(busy)return;$('status').textContent='Refreshing upstream snapshot…';try{await getJSON('/api/refresh',{method:'POST'});await loadSummary();loadStreamStatus(streamPage)}catch(e){$('status').textContent=e.message}});
+(async()=>{await loadLocations();await loadSummary();loadStreamStatus(1);setInterval(loadSummary,15000);setInterval(()=>loadStreamStatus(streamPage),30000)})();
 </script>
-</body>
-</html>
+</body></html>
